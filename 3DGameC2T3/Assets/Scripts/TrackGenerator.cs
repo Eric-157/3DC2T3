@@ -1,6 +1,13 @@
 using UnityEngine;
 using System.Collections.Generic;
 
+/************************
+* THIS CODE IS OLD
+* DO NOT USE
+* IT'S HEAVILY UNOPTIMIZED
+* THIS IS JUST FOR SHOW
+* OLD CODE, GO NO FURTHER
+************************/
 public class TrackGenerator : MonoBehaviour
 {
     public List<GameObject> trackPrefabs;

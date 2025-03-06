@@ -12,8 +12,10 @@ public class NewTrackGenerator : MonoBehaviour
     private int initialTracks = 8;
     public GameObject tempTrack;
     private GameObject newTrack;
+    private float scale;
     void Start()
     {
+        scale = transform.localScale.z;
         spawnPosition = transform.position;
         for (int i = 0; i < initialTracks; i++)
         {
@@ -31,7 +33,7 @@ public class NewTrackGenerator : MonoBehaviour
 
     void Update()
     {
-        if (transform.position.z - tempTrack.transform.position.z > 2.98)
+        if (transform.position.z - tempTrack.transform.position.z > (scale - 0.02))
         {
             SpawnTrack();
         }
