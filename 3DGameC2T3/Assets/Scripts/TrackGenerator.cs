@@ -3,16 +3,15 @@ using System.Collections.Generic;
 
 public class TrackGenerator : MonoBehaviour
 {
-    public List<GameObject> trackPrefabs; // List of track prefabs assigned in the inspector
-    public float trackLength = 3.213f; // Length of each track segment
-    public int initialTracks = 10; // Number of tracks to pre-spawn
-
-    private float spawnPosition = 0f; // Position where the next track will spawn
+    public List<GameObject> trackPrefabs;
+    public float trackLength = 3.213f;
+    public int initialTracks = 10;
+    private float spawnPosition = 0f;
+    public bool trackInSpawner = false;
     private List<GameObject> activeTracks = new List<GameObject>();
 
     void Start()
     {
-        // Spawn initial tracks
         for (int i = 0; i < initialTracks; i++)
         {
             SpawnTrack();
@@ -21,40 +20,47 @@ public class TrackGenerator : MonoBehaviour
 
     void Update()
     {
-        // Remove any destroyed tracks from the list
-        activeTracks.RemoveAll(track => track == null);
+        // activeTracks.RemoveAll(track => track == null);
+        // if (activeTracks.Count > 0 && activeTracks[0].transform.position.z < spawnPosition - trackLength)
+        // {
+        //     RecycleTrack();
+        // }
 
-        // If the first track has moved past the spawn position, we recycle it
-        if (activeTracks.Count > 0 && activeTracks[0].transform.position.z < spawnPosition - trackLength)
-        {
-            RecycleTrack();
-        }
+        // If spawncollider = false, spawnTrack
     }
 
     void SpawnTrack()
     {
-        // Instantiate a new track at the current spawn position
         GameObject newTrack = Instantiate(trackPrefabs[Random.Range(0, trackPrefabs.Count)], new Vector3(0, 0, spawnPosition), Quaternion.identity);
-        newTrack.tag = "Track"; // Assign the tag to the new track
-        activeTracks.Add(newTrack); // Add it to the active tracks list
-
-        // Update spawn position for the next track
+        newTrack.tag = "Track";
+        activeTracks.Add(newTrack);
         spawnPosition += trackLength;
     }
 
+    // This function DOES NOT WORK! It causes a bug that launches the tracks the other direction.
     void RecycleTrack()
     {
-        // Remove the first track that has moved far enough off-screen
         GameObject trackToRecycle = activeTracks[0];
-        activeTracks.RemoveAt(0); // Remove it from the active list
-
-        // Reposition the track at the end of the sequence to maintain consistency
+        activeTracks.RemoveAt(0);
+        // I believe this is the culprit here, but I can't check since removing this also removes the recycling functionality.
         trackToRecycle.transform.position = new Vector3(0, 0, spawnPosition);
-
-        // Add the recycled track to the back of the active tracks list
         activeTracks.Add(trackToRecycle);
-
-        // Update the spawn position for the next track
         spawnPosition += trackLength;
+    }
+    /***********************************
+    * TRY: New solution.
+    * Since SpawnTrack works, I'll instead try a trigger system in the engine.
+    * The only thing I should need to fix after that is a spacing bug.
+    * The spacing bug is related to the spawnPosition variable used in SpawnTrack.
+    * It doubles every 10 set.
+    ***********************************/
+
+    void OnTriggerEnter(Collider other)
+    {
+        trackInSpawner = true;
+    }
+    void OnTriggerExit(Collider other)
+    {
+        trackInSpawner = true;
     }
 }
