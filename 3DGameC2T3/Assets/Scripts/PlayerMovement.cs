@@ -10,16 +10,28 @@ public class PlayerMovement : MonoBehaviour
     private Vector3 targetPosition;
     float duration = 1f;
     float lerpTime = 0f;
+    private Animator mAnimator;
+    private bool alive = true;
 
     // Start is called before the first frame update
     void Start()
     {
-
+        mAnimator = GetComponent<Animator>();
+        mAnimator.SetBool("StartRunning", true);
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (alive == true)
+        {
+            mAnimator.SetBool("StartRunning", true);
+        }
+        else
+        {
+            mAnimator.SetBool("StartRunning", false);
+
+        }
         lerpTime += Time.deltaTime;
         float t = Mathf.Clamp(lerpTime / duration, 0f, 1f);
         if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
