@@ -9,12 +9,16 @@ public class NewTrackGenerator : MonoBehaviour
     public List<GameObject> trackPrefabs;
     public bool trackInSpawner = false;
     private Vector3 spawnPosition;
-    private int initialTracks = 8;
+    private int initialTracks = 0;
     public GameObject tempTrack;
     private GameObject newTrack;
     private float scale;
+    PlayerMovement playerMovement;
     void Start()
     {
+        GameObject[] playerArray = GameObject.FindGameObjectsWithTag("Player");
+        playerMovement = playerArray[0].GetComponent<PlayerMovement>();
+
         scale = transform.localScale.z;
         spawnPosition = transform.position;
         for (int i = 0; i < initialTracks; i++)
@@ -27,15 +31,20 @@ public class NewTrackGenerator : MonoBehaviour
 
         }
         spawnPosition = transform.position;
-        SpawnTrack();
-
     }
 
     void Update()
     {
-        if (transform.position.z - tempTrack.transform.position.z > (scale - 0.02))
+        if (playerMovement.alive && playerMovement.startGame)
         {
-            SpawnTrack();
+            if (tempTrack == null)
+            {
+                SpawnTrack();
+            }
+            if (transform.position.z - tempTrack.transform.position.z > (scale - 0.02))
+            {
+                SpawnTrack();
+            }
         }
     }
 

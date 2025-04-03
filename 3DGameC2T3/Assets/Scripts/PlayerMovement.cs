@@ -1,76 +1,121 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using System.Collections;
+using UnityEngine.UI; // Required for UI elements
 
 public class PlayerMovement : MonoBehaviour
 {
+    public GameObject startButton; // Assign the UI button in the Inspector
     public float horizontalSpeed = 4f;
     public float leftBoundry = -3;
     public float rightBoundry = 3;
     private Vector3 targetPosition;
-    float duration = 1f;
+    float duration = 0.2f;
     float lerpTime = 0f;
     private Animator mAnimator;
-    private bool alive = true;
+    public bool alive = true;
+    public bool startGame = false;
+    private bool isSliding = false;
+    private Rigidbody rb;
+    public float jumpForce = 5f;
 
-    // Start is called before the first frame update
     void Start()
     {
         mAnimator = GetComponent<Animator>();
-        mAnimator.SetBool("StartRunning", true);
+        rb = GetComponent<Rigidbody>();
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (alive == true)
+        if (startGame == true)
         {
-            mAnimator.SetBool("StartRunning", true);
-        }
-        else
-        {
-            mAnimator.SetBool("StartRunning", false);
-
-        }
-        lerpTime += Time.deltaTime;
-        float t = Mathf.Clamp(lerpTime / duration, 0f, 1f);
-        if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
-        {
-            if (transform.position.x >= (leftBoundry + 0.5))
+            if (!alive)
             {
-                //transform.Translate(Vector3.left * Time.deltaTime * horizontalSpeed);
-                //transform.position += new Vector3(-3, 0, 0);
-                //transform.position = Vector3.MoveTowards(transform.position, transform.position + new Vector3(-3, 0, 0), horizontalSpeed * Time.deltaTime);
-                Vector3 startingPos = transform.position;
-                targetPosition = transform.position + new Vector3(-3, 0, 0);
-                transform.position = Vector3.Lerp(startingPos, targetPosition, t);
-                // StartCoroutine(MoveToTarget());
+                mAnimator.SetBool("Run", false);
+                return;
             }
-
-        }
-        if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
-        {
-            if (transform.position.x <= (rightBoundry - 0.5))
+            else
             {
-                //transform.Translate(Vector3.left * Time.deltaTime * horizontalSpeed * -1);
-                //transform.position += new Vector3(3, 0, 0);
-                //transform.position = Vector3.MoveTowards(transform.position, transform.position + new Vector3(3, 0, 0), horizontalSpeed * Time.deltaTime);
-                // StartCoroutine(MoveToTarget());
-                Vector3 startingPos = transform.position;
-                targetPosition = transform.position + new Vector3(3, 0, 0);
-                transform.position = Vector3.Lerp(startingPos, targetPosition, t);
-            }
+                mAnimator.SetBool("Run", true);
+                lerpTime += Time.deltaTime;
+                float t = Mathf.Clamp(lerpTime / duration, 0f, 1f);
 
+                if (Input.GetKeyDown(KeyCode.A) || Input.GetKeyDown(KeyCode.LeftArrow))
+                {
+                    if (transform.position.x >= (leftBoundry + 0.5))
+                    {
+                        MovePlayer(-3);
+                        mAnimator.SetTrigger("MoveLeft");
+                    }
+                }
+                if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
+                {
+                    if (transform.position.x <= (rightBoundry - 0.5))
+                    {
+                        MovePlayer(3);
+                        mAnimator.SetTrigger("MoveRight");
+                    }
+                }
+                if (Input.GetKeyDown(KeyCode.Space))
+                {
+                    Jump();
+                }
+                if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
+                {
+                    if (!isSliding)
+                    {
+                        StartCoroutine(Slide());
+                    }
+                }
+            }
         }
     }
-    // IEnumerator MoveToTarget()
-    // {
 
-    //     Vector3 startingPos = transform.position;
-    //     while (Vector3.Distance(transform.position, targetPosition) > 0.1f)
-    //     {
-    //         transform.position = Vector3.Lerp(startingPos, targetPosition, t);
-    //         yield return null;
-    //     }
-    // }
+    public void StartGame()
+    {
+        if (startButton != null)
+        {
+            startButton.SetActive(false);
+        }
+        startGame = true;
+    }
+
+    void MovePlayer(float direction)
+    {
+        Vector3 startingPos = transform.position;
+        targetPosition = transform.position + new Vector3(direction, 0, 0);
+        transform.position = Vector3.Lerp(startingPos, targetPosition, 1);
+    }
+
+    void Jump()
+    {
+        if (Mathf.Approximately(rb.velocity.y, 0))
+        {
+            rb.AddForce(Vector3.up * jumpForce, ForceMode.Impulse);
+            mAnimator.SetTrigger("Jump");
+        }
+    }
+
+    IEnumerator Slide()
+    {
+        isSliding = true;
+        mAnimator.SetTrigger("SlideStart");
+        yield return new WaitForSeconds(0.5f);
+        mAnimator.SetTrigger("SlideEnd");
+        yield return new WaitForSeconds(0.5f);
+        isSliding = false;
+    }
+
+    void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.tag == "Obstacle")
+        {
+            Die();
+        }
+    }
+
+    void Die()
+    {
+        alive = false;
+        mAnimator.SetTrigger("Die");
+    }
 }
